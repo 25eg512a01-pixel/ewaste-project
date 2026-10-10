@@ -1,4 +1,5 @@
-const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8080/api').replace(/\/$/, '');
+const configuredApiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8080/api').replace(/\/+$/, '');
+const API_URL = configuredApiUrl.endsWith('/api') ? configuredApiUrl : `${configuredApiUrl}/api`;
 export async function api(path, options = {}) {
   const token = localStorage.getItem('ewaste_token');
   const headers = { ...(options.body ? { 'Content-Type': 'application/json' } : {}), ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(options.headers || {}) };
