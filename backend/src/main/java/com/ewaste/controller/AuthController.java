@@ -1,0 +1,10 @@
+package com.ewaste.controller;
+import com.ewaste.dto.*; import com.ewaste.model.*; import com.ewaste.repository.UserRepository; import com.ewaste.security.JwtService; import jakarta.validation.Valid; import org.springframework.http.*; import org.springframework.security.crypto.password.PasswordEncoder; import org.springframework.web.bind.annotation.*; import org.springframework.security.core.Authentication;
+@RestController @RequestMapping("/api/auth") public class AuthController {
+ private final UserRepository users;private final PasswordEncoder encoder;private final JwtService jwt;
+ public AuthController(UserRepository users,PasswordEncoder encoder,JwtService jwt){this.users=users;this.encoder=encoder;this.jwt=jwt;}
+ @PostMapping("/register") public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest r){if(users.existsByEmailIgnoreCase(r.email()))return ResponseEntity.status(409).body(java.util.Map.of("message","Email is already registered"));AppUser u=new AppUser();u.setName(r.name().trim());u.setEmail(r.email().trim().toLowerCase());u.setPassword(encoder.encode(r.password()));u.setRole(Role.USER);users.save(u);return ResponseEntity.status(201).body(response(u));}
+ @PostMapping("/login") public ResponseEntity<?> login(@Valid @RequestBody AuthRequest r){var u=users.findByEmailIgnoreCase(r.email().trim()).orElse(null);if(u==null||!encoder.matches(r.password(),u.getPassword()))return ResponseEntity.status(401).body(java.util.Map.of("message","Invalid email or password"));return ResponseEntity.ok(response(u));}
+ @GetMapping("/me") public ResponseEntity<?> me(Authentication a){if(a==null)return ResponseEntity.status(401).body(java.util.Map.of("message","Unauthorized"));var u=users.findByEmailIgnoreCase(a.getName()).orElse(null);return u==null?ResponseEntity.status(401).body(java.util.Map.of("message","Unauthorized")):ResponseEntity.ok(AuthResponse.UserView.from(u));}
+ private AuthResponse response(AppUser u){return new AuthResponse(jwt.generate(u.getEmail(),u.getRole().name()),AuthResponse.UserView.from(u));}
+}

@@ -1,0 +1,1 @@
+export default function StatusBadge({ status }) { const cls = ({COMPLETED:'success',PICKED_UP:'info',ACCEPTED:'primary',ASSIGNED:'primary',SCHEDULED:'warning',REPORTED:'secondary',CANCELLED:'danger'})[status] || 'secondary'; return <span className={`badge text-bg-${cls} status-badge`}>{(status || 'UNKNOWN').replaceAll('_',' ')}</span>; }
